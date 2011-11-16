@@ -13,7 +13,7 @@
 =end
 require 'logger'
 require 'rbcurse'
-require 'rbcurse/rtextview'
+require 'rbcurse/core/widgets/rtextview'
 require 'rbcurse/listscrollable'
 
 #include Ncurses # FFI 2011-09-8 

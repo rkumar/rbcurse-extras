@@ -1,4 +1,4 @@
-require 'rbcurse/extras/rlink'
+require 'rbcurse/extras/widgets/rlink'
 ##
 module RubyCurses
   class MenuLink < Link

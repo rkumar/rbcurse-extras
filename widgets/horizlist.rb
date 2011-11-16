@@ -15,7 +15,7 @@ module RubyCurses
   # Horizontal list scrolling and selection.
   #
   #    == Example
-  #    require 'rbcurse/extras/horizlist'
+  #    require 'rbcurse/extras/widgets/horizlist'
   #    require 'fileutils'
   #    l = HorizList.new @form, :row => 5, :col => 5, :width => 80 
   #    list = Dir.glob("*")
@@ -187,7 +187,7 @@ if __FILE__ == $PROGRAM_NAME
   require 'rbcurse/app'
 
   App.new do
-    require 'rbcurse/extras/horizlist'
+    require 'rbcurse/extras/widgets/horizlist'
     require 'fileutils'
     l = HorizList.new @form, :row => 5, :col => 5, :width => 80 
     list = Dir.glob("*")

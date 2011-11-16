@@ -18,7 +18,7 @@
 # i am tired of maintaining this everywhere.
 require 'rbcurse'
 require 'rbcurse/rlistbox'
-require 'rbcurse/extras/divider'
+require 'rbcurse/core/widgets/divider'
 require 'rbcurse/extras/focusmanager'
 
 include RubyCurses
@@ -183,7 +183,7 @@ module RubyCurses
           lb = Listbox.new nil, :list => c , :name => "list#{@components.size}"
           c = lb
         when String
-          require 'rbcurse/rtextview'
+          require 'rbcurse/core/widgets/rtextview'
           lb = TextView.new nil, :name => "text#{@components.size}"
           lb.set_content c
           c = lb
