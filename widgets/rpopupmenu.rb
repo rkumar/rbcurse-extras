@@ -26,7 +26,7 @@ a user friendly string to identifiy the action, as well as a disabled option.
 =end
 require 'logger'
 require 'rbcurse'
-require 'rbcurse/action'
+require 'rbcurse/core/include/action'
 
 #include Ncurses # FFI 2011-09-8 
 include RubyCurses

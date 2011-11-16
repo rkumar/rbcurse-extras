@@ -16,7 +16,7 @@
    That v character does not position correctly if label used.
 =end
 require 'rbcurse'
-require 'rbcurse/rlistbox'
+require 'rbcurse/extras/widgets/rlistbox'
 
 include RubyCurses
 module RubyCurses

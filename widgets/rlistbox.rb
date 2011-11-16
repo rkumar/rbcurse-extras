@@ -11,8 +11,8 @@ TODO
   cursor movement and other functions. 
 =end
 require 'rbcurse'
-require 'rbcurse/listcellrenderer'
-require 'rbcurse/listkeys'
+require 'rbcurse/core/include/listcellrenderer'
+require 'rbcurse/extras/include/listkeys'
 require 'forwardable'
 
 
@@ -397,10 +397,10 @@ module RubyCurses
   #
   class Listbox < Widget
 
-    require 'rbcurse/listscrollable'
-    require 'rbcurse/listselectable'
-    require 'rbcurse/defaultlistselectionmodel'
-    require 'rbcurse/celleditor'
+    require 'rbcurse/core/include/listscrollable'
+    require 'rbcurse/extras/include/listselectable'
+    require 'rbcurse/extras/include/defaultlistselectionmodel'
+    require 'rbcurse/extras/include/celleditor'
     include ListScrollable
     include ListSelectable
     include RubyCurses::ListKeys
@@ -824,7 +824,7 @@ module RubyCurses
     #
     def fire_action_event
       # this does not select the row ???? FIXME ??
-      require 'rbcurse/ractionevent'
+      require 'rbcurse/core/include/ractionevent'
       # should have been callled :ACTION_EVENT !!!
       fire_handler :PRESS, ActionEvent.new(self, :PRESS, text)
     end

@@ -1,4 +1,4 @@
-require 'rbcurse/listselectable'
+require 'rbcurse/extras/include/listselectable'
 ##
 # Added ListSelectionEvents on 2009-02-13 23:33 
 # Data model for list selections. Uses index or indices, or value/values. Please avoid using "row"

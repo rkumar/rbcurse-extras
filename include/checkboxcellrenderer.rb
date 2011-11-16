@@ -1,4 +1,4 @@
-require 'rbcurse/listcellrenderer'
+require 'rbcurse/core/include/listcellrenderer'
 module RubyCurses
 
   ## 

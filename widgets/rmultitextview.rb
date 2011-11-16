@@ -14,7 +14,7 @@
 require 'logger'
 require 'rbcurse'
 require 'rbcurse/core/widgets/rtextview'
-require 'rbcurse/listscrollable'
+require 'rbcurse/core/include/listscrollable'
 
 #include Ncurses # FFI 2011-09-8 
 include RubyCurses

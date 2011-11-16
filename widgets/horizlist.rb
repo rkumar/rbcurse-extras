@@ -173,7 +173,7 @@ module RubyCurses
       fire_handler :LEAVE_ROW, self
     end
     def fire_action_event
-      require 'rbcurse/ractionevent'
+      require 'rbcurse/core/include/ractionevent'
       fire_handler :PRESS, ActionEvent.new(self, :PRESS, text)
     end
     def current_value
@@ -184,7 +184,7 @@ module RubyCurses
   end # class
 end # module
 if __FILE__ == $PROGRAM_NAME
-  require 'rbcurse/app'
+  require 'rbcurse/core/util/app'
 
   App.new do
     require 'rbcurse/extras/widgets/horizlist'

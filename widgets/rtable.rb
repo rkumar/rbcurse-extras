@@ -29,9 +29,9 @@ require 'logger'
 require 'rbcurse'
 require 'rbcurse/table/tablecellrenderer'
 require 'rbcurse/table/tabledatecellrenderer'
-require 'rbcurse/checkboxcellrenderer'
-require 'rbcurse/listselectable'
-require 'rbcurse/listkeys'
+require 'rbcurse/extras/include/checkboxcellrenderer'
+require 'rbcurse/extras/include/listselectable'
+require 'rbcurse/extras/include/listkeys'
 
 #include Ncurses # FFI 2011-09-8 
 include RubyCurses
