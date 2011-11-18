@@ -46,10 +46,19 @@ you can use their core counterparts.
               I don't want this in core, use only if really required.
 
 
-==  Miscellaneous
+##  Miscellaneous
 
 rbcurse-extras will not be as stable as core. It will change more frequently. Stuff from experimental
 may move here. 
+
+
+## See also
+
+* rbcurse - <http://github.com/rkumar/rbcurse/>
+
+* rbcurse-core - <http://github.com/rkumar/rbcurse-core/>
+
+* rbcurse-experimental - <http://github.com/rkumar/rbcurse-experimental/>
 
 ## Install
 
