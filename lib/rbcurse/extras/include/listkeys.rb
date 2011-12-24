@@ -13,8 +13,8 @@ module RubyCurses
       #@KEY_ASK_FIND_BACKWARD ||= ?\M-F.getbyte(0)
       #@KEY_FIND_NEXT ||= ?\M-g.getbyte(0)
       #@KEY_FIND_PREV ||= ?\M-G.getbyte(0)
-      @KEY_SCROLL_FORWARD ||= ?\C-n.getbyte(0)
-      @KEY_SCROLL_BACKWARD ||= ?\C-p.getbyte(0)
+      @KEY_SCROLL_FORWARD ||= ?\C-d.getbyte(0)
+      @KEY_SCROLL_BACKWARD ||= ?\C-b.getbyte(0)
       @KEY_SCROLL_RIGHT ||= ?\M-8.getbyte(0)
       @KEY_SCROLL_LEFT ||= ?\M-7.getbyte(0)
 
