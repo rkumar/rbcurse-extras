@@ -6,9 +6,12 @@
   * License: Same as Ruby's License (http://www.ruby-lang.org/LICENSE.txt)
   * This file started on 2009-01-13 22:18 (broken off rwidgets.rb)
 NOTE: listbox now traps RETURN/ENTER/13 so if you are trapping it, please use bind :PRESS
+  # Changes:
+  # Added edit_toggle_mode and edit_toggle_key so on can use vim keys for navigating
+  #   and go into edit mode (currently using C-e). This way ENTER can still be used
+  #   for PRESS. Esc and esc-esc closes edit mode whereas C-c or C-g reverts edit.
+
 TODO 
-  Perhaps keep printed data created by convert_value_to_text cached, and used for searching
-  cursor movement and other functions. 
 =end
 require 'rbcurse'
 require 'rbcurse/core/include/listcellrenderer'
@@ -445,6 +448,7 @@ module RubyCurses
       @focusable = true
       @editable = false
       @sanitization_required = true
+      @one_key_selection = false # allow vim like keys
       @row = 0
       @col = 0
       # data of listbox this is not an array, its a pointer to the  listdatamodel
@@ -460,16 +464,14 @@ module RubyCurses
       @win = @graphic    # 2010-01-04 12:36 BUFFERED  replace form.window with graphic
       # moving down to repaint so that scrollpane can set should_buffered
       # added 2010-02-17 23:05  RFED16 so we don't need a form.
-      @win_left = 0
-      @win_top = 0
 
       # next 2 lines carry a redundancy
       select_default_values   
       # when the combo box has a certain row in focus, the popup should have the same row in focus
 
       install_keys
-      init_vars
       install_list_keys
+      init_vars
       # OMG What about people whove installed custom renders such as rfe.rb 2011-10-15 
       #bind(:PROPERTY_CHANGE){|e| @cell_renderer = nil } # will be recreated if anything changes 2011-09-28 V1.3.1  
       bind(:PROPERTY_CHANGE){|e| 
@@ -482,6 +484,7 @@ module RubyCurses
       if @list && !@list.selected_index.nil? 
         set_focus_on @list.selected_index # the new version
       end
+      init_menu
     end
     # this is called several times, from constructor
     # and when list data changed, so only put relevant resets here.
@@ -497,29 +500,44 @@ module RubyCurses
         @left_margin ||= @row_selected_symbol.length
       end
       @left_margin ||= 0
-      @one_key_selection = true if @one_key_selection.nil?
       # we reduce internal_width from width while printing
       @internal_width = 2 # taking into account borders accounting for 2 cols
       @internal_width = 0 if @suppress_borders # should it be 0 ???
 
+      # toggle editable state using ENTER key
+      @edit_toggle = false
+      @edit_toggle_key = ?\C-e.getbyte(0)
+      # has editing started using edit_toggle
+      @is_editing = !@edit_toggle
+      map_keys unless @keys_mapped # moved here so users can remap
+
     end
     def map_keys
       return if @keys_mapped
-      bind_key(?f){ ask_selection_for_char() }
-      bind_key(?\M-v){ @one_key_selection = false }
-      bind_key(?j){ next_row() }
-      bind_key(?k){ previous_row() }
-      bind_key(?G){ goto_bottom() }
-      bind_key([?g,?g]){ goto_top() }
-      bind_key(?/){ ask_search() }
-      bind_key(?n){ find_more() }
+      bind_key(?f, 'next row starting with ...'){ ask_selection_for_char() }
+      bind_key(?\M-v, 'one key toggle'){ @one_key_selection = !@one_key_selection }
+      bind_key(?j, 'next row'){ next_row() }
+      bind_key(?k, 'prev row'){ previous_row() }
+      bind_key(?\C-n, 'next row'){ next_row() }
+      bind_key(?\C-p, 'prev row'){ previous_row() }
+      bind_key(?\C-d, :scroll_forward)
+      bind_key(?\C-b, :scroll_backward)
+      bind_key(?G, 'goto bottom'){ goto_bottom() }
+      bind_key([?g,?g], 'goto top'){ goto_top() }
+      bind_key(?\M-<, :goto_top )
+      bind_key(?\M->, :goto_bottom )
+      bind_key(?/, 'find'){ ask_search() }
+      bind_key(?n, 'find next'){ find_more() }
       #bind_key(32){ toggle_row_selection() } # some guys may want another selector
       if @cell_editing_allowed && @KEY_ROW_SELECTOR == 32
         @KEY_ROW_SELECTOR = 0 # Ctrl-Space
       end
-      bind_key(@KEY_ROW_SELECTOR){ toggle_row_selection() }
-      bind_key(10){ fire_action_event }
-      bind_key(13){ fire_action_event }
+      bind_key(@KEY_ROW_SELECTOR, 'select a row'){ toggle_row_selection() }
+      bind_key(10, 'fire action'){ fire_action_event }
+      # I had commented this but we need ENTER for cases like a directory browser where ENTER opens dir
+      bind_key(KEY_ENTER, 'fire action'){ fire_action_event }
+      #bind_key(13){ @is_editing = !@is_editing }
+      bind_key(?\M-: ,  :_show_menu)
       @keys_mapped = true
     end
 
@@ -666,6 +684,8 @@ module RubyCurses
       end
     end
     def print_borders
+      raise "Width not supplied" unless @width
+      raise "Height not supplied" unless @height
       width = @width
       height = @height-1 # 2010-01-04 15:30 BUFFERED HEIGHT
       window = @graphic  # 2010-01-04 12:37 BUFFERED
@@ -707,31 +727,32 @@ module RubyCurses
     end
     # Listbox
     def handle_key(ch)
-      map_keys unless @keys_mapped
       @current_index ||= 0
       @toprow ||= 0
       h = scrollatrow()
       rc = row_count
       $log.debug " listbox got ch #{ch}"
-      #$log.debug " when kps #{@KEY_PREV_SELECTION}  "
+      # not sure we should do something like this
+      #  If editing is happening don't use space for selection, let it be using in editing
+      #  and make 0 (ctrl-space) the selector. If no editing, let space be selector
+      if ch == 32
+        if @KEY_ROW_SELECTOR == 32
+          if @is_editing
+            key_row_selector = 0 # Ctrl-Space
+          else
+            key_row_selector = 32
+          end
+        end
+      end
       case ch
-      when 10,13, KEY_ENTER
-        # this means you cannot just bind_key 10 or 13 like we once did
-        fire_action_event # trying out REMOVE 2011-09-16 FFI
-        $log.debug " 333 listbox catching 10,13 fire_action_event "
-        return 0
       when KEY_UP  # show previous value
         return previous_row
       when KEY_DOWN  # show previous value
         return next_row
-      when @KEY_ROW_SELECTOR # 32
+      when key_row_selector # 32
         return if is_popup && @selection_mode != :multiple # not allowing select this way since there will be a difference 
         toggle_row_selection @current_index #, @current_index
         @repaint_required = true
-      when @KEY_SCROLL_FORWARD # ?\C-n
-        scroll_forward
-      when @KEY_SCROLL_BACKWARD #  ?\C-p
-        scroll_backward
       when @KEY_GOTO_TOP # 48, ?\C-[
         # please note that C-[ gives 27, same as esc so will respond after ages
         goto_top
@@ -750,10 +771,25 @@ module RubyCurses
       when @KEY_CLEAR_SELECTION
         clear_selection 
         @repaint_required = true
-      when 27, ?\C-c.getbyte(0), ?\C-g.getbyte(0)
+      when 3, ?\C-c.getbyte(0), ?\C-g.getbyte(0)
         editing_canceled @current_index if @cell_editing_allowed
         cancel_block # block
+        @repaint_required = true
         $multiplier = 0
+      when 27, 2727
+        # ESC or ESC ESC completes edit along with toggle key
+        if @is_editing
+          editing_completed @current_index
+        end
+        @repaint_required = true
+      when @edit_toggle_key
+        # I am currently allowing this to work even if edit_toggle is false
+        # You can check for edit_toggle here, if you don't like this behaviour
+        @is_editing = !@is_editing
+        if !@is_editing
+          editing_completed @current_index
+        end
+        @repaint_required = true
       when @KEY_ASK_FIND_FORWARD
       # ask_search_forward
       when @KEY_ASK_FIND_BACKWARD
@@ -779,13 +815,16 @@ module RubyCurses
         # this has to be fixed, if compo does not handle key it has to continue into next part FIXME
         ret = :UNHANDLED # changed on 2009-01-27 13:14 not going into unhandled, tab not released
         if @cell_editing_allowed
-          @repaint_required = true
-          # hack - on_enter_row should fire when this widget gets focus. first row that is DONE
-          begin
-            ret = @cell_editor.component.handle_key(ch)
-          rescue
-            on_enter_row @current_index
-            ret = @cell_editor.component.handle_key(ch)
+          #if !@edit_toggle || (@edit_toggle && @is_editing)
+          if @is_editing
+            @repaint_required = true
+            # hack - on_enter_row should fire when this widget gets focus. first row that is DONE
+            begin
+              ret = @cell_editor.component.handle_key(ch)
+            rescue
+              on_enter_row @current_index
+              ret = @cell_editor.component.handle_key(ch)
+            end
           end
         end
         if ret == :UNHANDLED
@@ -926,6 +965,9 @@ module RubyCurses
         else
           $log.debug "CELL EDITOR WAS NIL, #{arow} "
         end
+        if @edit_toggle
+          @is_editing = false
+        end
       end
       @repaint_required = true
     end
@@ -971,8 +1013,6 @@ module RubyCurses
       @graphic = my_win unless @graphic
       raise " #{@name} neither form, nor target window given LB paint " unless my_win
       raise " #{@name} NO GRAPHIC set as yet                 LB paint " unless @graphic
-      @win_left = my_win.left
-      @win_top = my_win.top
 
       #$log.debug "rlistbox repaint  #{@name} r,c, #{@row} #{@col} , width: #{@width}  "
       print_borders unless @suppress_borders # do this once only, unless everything changes
@@ -1022,7 +1062,7 @@ module RubyCurses
             @graphic.printstring r+hh, c, " " * (@width-@internal_width), acolor,@attr
           end
         end
-        if @cell_editing_allowed
+        if @cell_editing_allowed && @is_editing
           @cell_editor.component.repaint unless @cell_editor.nil? or @cell_editor.component.form.nil?
         end
       end # rc == 0
@@ -1048,7 +1088,7 @@ module RubyCurses
     def sanitize content
       if content.is_a? String
         content.chomp!
-        content.gsub!(/\t/, '  ') # don't display tab
+        content.gsub!(/[\t\n\r]/, '  ') # don't display tab
         content.gsub!(/[^[:print:]]/, '')  # don't display non print characters
       else
         content
@@ -1189,6 +1229,22 @@ module RubyCurses
     alias :selected_values :get_selected_values
     alias :selected_indices :get_selected_indices
 
+  def init_menu
+    require 'rbcurse/core/include/action'
+      @_menuitems ||= []
+      # TODO preferable to make Action objects since they will be universal and can be used in
+      # many ways
+      #@_menuitems <<  PromptMenu.create_menuitem('o', "One Key Selection toggle ", "Going to start", Proc.new { @one_key_selection = !@one_key_selection} )
+      @_menuitems <<  Action.new("&One Key Selection toggle ") { @one_key_selection = !@one_key_selection} 
+      #@_menuitems << PromptMenu.create_menuitem( 'e', "Edit toggle ", "Edit", Proc.new { @edit_toggle = !@edit_toggle } )
+      @_menuitems << Action.new("&Edit Toggle") { @edit_toggle = !@edit_toggle; $status_message.value = "Edit toggle is #{@edit_toggle}" }
+    #menu = PromptMenu.new self do |m|
+      #item :o, :info
+      #m.add( m.create_mitem( 'o', "One Key Selection toggle ", "Going to start", Proc.new { @one_key_selection = !@one_key_selection} ))
+      #m.add( m.create_mitem( 'e', "Edit toggle ", "Edit", Proc.new { @edit_toggle = !@edit_toggle } ))
+    #end
+    #menu.display_new :title => "Menu"
+  end
     # ADD HERE
   end # class listb
 
