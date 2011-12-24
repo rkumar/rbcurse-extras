@@ -1,0 +1,36 @@
+id	sta	type	pri	title
+8	op	bug	P5	container keep repainting all  >>seems that containers like rmultisplit are not returing on
+rep
+10	op	enh	P4	combo keys  >>1. space to select an item 2. space to call popup (currently Alt-v)
+17	op	bug	P4	selected_item of list broken  >>giving nil or blank in #qdfilechooser and maybe others
+20	op	bug	P4	cannot bind_key using Alt key and another.   >>If trying on irb it doesn't.
+22	op	bug	P3	widget hide (visible false) does not hide  >>only stops further repainting, need to clear
+26	op	fea	P5	App to have a layout abject   >>e.g. Frame which has header body and footer like the current on
+27	op	bug	P4	#fix testvimsplit not sizing STACK correctly  >>stack not properly sized
+32	op	enh	P4	 #tree many empty methods in #treemodel  >>
+37	op	enh	P4	simplify #vimsplit calculation  >>Avoid double maint of width and height etc just one. KISS.
+39	op	bug	P5	tabularwidget truncate needed left_margin  >>this may be a problem in listbox and others where 
+42	op	bug	P5	append_to_kill, yank not working in %listbox  >>M-2 M-w and C-y is working but append to kill n
+49	op	enh	P5	resultsetview needs way to specify key fields  >>so keys can be non-editable and used in update
+50	op	bug	P5	sort on tabularwidget with resultset error sometimes  >>comparison of sqlite3 datatype error, b
+52	op	bug	P4	%label set_label may have to calculate at repaint esp in app  >>currently when it is calc, fiel
+55	op	enh	P4	Have a module Expandable for those that are multiline  >>if textview/area. container. list etc 
+60	op	enh	P4	fields width, display_len is for input area, not label plus input  >>after including label, now
+61	op	bug	P4	test2.rb color change not affecting text objects  >>suddnely stopped affecting. is it the bgcol
+65	op	enh	P3	clean up window.rb prv_printstring etc  >>can we go back to earlier simple version, why that re
+69	op	bug	P3	C-u not available for textpad and view. how to  >>how can we customzie so textview or textpad c
+70	op	enh	P4	confusion between renderer and color_parser  >>can it not be one, rather than 2 separate things
+74	op	enh	P3	list and others should just calculate longest in list  >>rahter than trying to figure it out as
+75	op	enh	P4	textpad to allow append << at some stage  >>
+79	op	enh	P3	cleanup button getpaint etc  >>seems quite messy, can it be cleaned up
+80	op	enh	P3	use @focusable in form to simplify  >>as in container/component
+85	op	bug	P4	combo symbol when label, see newmessagebox  >>symbol is off. see newtabbedpane, Term pane.
+86	op	bug	P4	combo let caller suggest width and use if longer than longest item  >>otherwis[3~[3~
+87	op	enh	P3	praps global setting lists etc use SPC for scroll or selection  >>define what key to use for se
+95	op	bug	P3	window.refresh required after alert of messagebox closes  >>this was never required in mncurses
+101	op	bug	P2	table search curpos skewed by datasize since to_s used  >>listscrollable uses to_s on table to 
+102	st	bug	P2	u is uselect in lists, but also undo in vimkeys  >>u must remain undo, unselect should be somet
+104	op	bug	P2	tabbedpane: check for Container requires it to be required  >>this should not happen.
+108	op	enh	P3	text multilne, consider using waddnstr i/o truncate  >>printstring does not take length, it wou
+112	op	enh	P2	highlight match happens only after repaint which means scroll  >>due to repain optimization, on
+113	op	fea	P1	vim search behavior: up arrow for history, if empty then default used...  >>whe pressing /, it;
