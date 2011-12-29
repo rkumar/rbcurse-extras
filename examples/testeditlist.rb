@@ -12,9 +12,21 @@ require 'rbcurse/extras/widgets/rlistbox'
     This simple example shows the old editable list. This was the original
     list, but pretty complicated due to editing. You can switch off the editing.
 
-    While editing, you can cancel using ESC or C-c.
+    Type Alt-: to see customization menu. You may select:
 
-    Navigation: use arrow keys, or C-n, C-p, C-d, C-f
+    * edit_toggle: when false you are always in insert mode.
+                   when true, you are in command mode, but can go into
+                   edit/insert mode by pressing <edit_toggle_key> currently
+                   C-e. You can also complete edit using <ESC>. 
+                   You may cancel edit using C-c or C-g.
+
+    * one_key_selection : if you are not in insert mode you can switch this on, so pressing
+                  any alphabet takes you to first row starting with that char.
+                  If false, then you are in so-called "vim" mode, so u can use j/k/gg/G etc keys.
+                  To get the same functionality of one-key, use f<char>.
+
+    Navigation: use arrow keys, or C-n, C-p, C-d, C-f. In command mode, pressing '?' displays
+                  key-bindings.
 
 
 
@@ -26,7 +38,6 @@ require 'rbcurse/extras/widgets/rlistbox'
 
 
 
-# just a simple test to ensure that rbasiclistbox is running inside a container.
 App.new do 
   #
   # general purpose command to catch miscellaneous actions that can be 
@@ -42,12 +53,12 @@ App.new do
   colors = Ncurses.COLORS
   back = :blue
   back = 234 if colors >= 256
-  header = app_header "rbcurse #{Rbcurse::VERSION}", :text_center => "Rbcurse Demo", :text_right =>"New Improved!", :color => :white, :bgcolor => back #, :attr => :bold 
+  header = app_header "rbcurse #{Rbcurse::VERSION}", :text_center => "Listbox Demo", :text_right =>"New Improved!", :color => :white, :bgcolor => back #, :attr => :bold 
   message "F10 - Exit, F1 - Help, : - Menu"
   install_help_text my_help_text
 
   alist = File.open("data/list.txt",'r').readlines.map{|i| i.chomp }
-  atable = File.open("data/table.txt",'r').readlines
+  #atable = File.open("data/table.txt",'r').readlines
 
   #stack :margin_top => 1, :width => :expand, :height => FFI::NCurses.LINES-2 do
   max = FFI::NCurses.LINES-2
@@ -63,7 +74,4 @@ App.new do
   #label({:text => "F1 Help, F10 Quit. : for menu. Press F4 and F5 to test popup, space or enter to select", :row => Ncurses.LINES-1, :col => 0})
 
 
-
-  @form.bind_key(?:) { disp_menu; }
-  #@form.bind_key(?\M-:) { disp_menu; }
 end # app
