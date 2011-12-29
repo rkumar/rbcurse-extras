@@ -537,7 +537,7 @@ module RubyCurses
       # I had commented this but we need ENTER for cases like a directory browser where ENTER opens dir
       bind_key(KEY_ENTER, 'fire action'){ fire_action_event }
       #bind_key(13){ @is_editing = !@is_editing }
-      bind_key(?\M-: ,  :_show_menu)
+      #bind_key(?\M-: ,  :_show_menu)
       @keys_mapped = true
     end
 
@@ -1232,18 +1232,11 @@ module RubyCurses
   def init_menu
     require 'rbcurse/core/include/action'
       @_menuitems ||= []
-      # TODO preferable to make Action objects since they will be universal and can be used in
-      # many ways
-      #@_menuitems <<  PromptMenu.create_menuitem('o', "One Key Selection toggle ", "Going to start", Proc.new { @one_key_selection = !@one_key_selection} )
       @_menuitems <<  Action.new("&One Key Selection toggle ") { @one_key_selection = !@one_key_selection} 
-      #@_menuitems << PromptMenu.create_menuitem( 'e', "Edit toggle ", "Edit", Proc.new { @edit_toggle = !@edit_toggle } )
       @_menuitems << Action.new("&Edit Toggle") { @edit_toggle = !@edit_toggle; $status_message.value = "Edit toggle is #{@edit_toggle}" }
-    #menu = PromptMenu.new self do |m|
-      #item :o, :info
-      #m.add( m.create_mitem( 'o', "One Key Selection toggle ", "Going to start", Proc.new { @one_key_selection = !@one_key_selection} ))
-      #m.add( m.create_mitem( 'e', "Edit toggle ", "Edit", Proc.new { @edit_toggle = !@edit_toggle } ))
-    #end
-    #menu.display_new :title => "Menu"
+
+      # this is a little more involved due to list selection model
+      @_menuitems <<  Action.new("&Disable selection") { @selection_mode = :none; unbind_key(32); bind_key(32, :scroll_forward); }
   end
     # ADD HERE
   end # class listb
