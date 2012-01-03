@@ -1008,6 +1008,7 @@ module RubyCurses
     # a section of it.
     def repaint
       return unless @repaint_required
+      return if (@height || 0) < 3 || @width == 0
       # not sure where to put this, once for all or repeat 2010-02-17 23:07 RFED16
       my_win = @form ? @form.window : @target_window
       @graphic = my_win unless @graphic
