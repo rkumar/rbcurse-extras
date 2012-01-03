@@ -382,6 +382,9 @@ module RubyCurses
       recalculate_splits use_preferred_sizes=true
     end
     def recalculate_splits use_preferred_sizes=false 
+      # i've made it true so that moving the divider can recalculate all, otherwise 
+      # testvimsplit was failing to recalc 2 lists. 2011-12-29 
+      use_preferred_sizes=true 
       @recalculate_splits = false
       [@c1,@c2].each_with_index do |c,i| 
         rca = @c1rc
@@ -393,7 +396,22 @@ module RubyCurses
         totalwd = 0 # accumulative weight for width (in case someone switches)
         totalht = 0 # accumulative weight for height (in case someone switches)
         sz = c.size
-        auto = 1.0/sz
+        auto = 1.0/sz # even this is wrong since we have stacks and flows mixed
+        # calculate a more accurate auto than just an average
+        # SHIT this won't work since c contains flow and stacks, all objects
+        #used = 0.0
+        #usedct = 0
+        #c.each {|e| info = @ch[e]; wt = info.weight; 
+          #if wt && wt != :AUTO
+            #used += wt
+            #usedct += 1
+          #end
+        #}
+        #if usedct > 0
+          #$log.debug "XXX:  COMES HERE 1.0 - #{used} / #{sz} - #{usedct} "
+          #auto = (1.0 - used) / (sz - usedct)
+        #end
+        frem = srem = 0
         c.each do |e| 
           r    = rca.row
           c    = rca.col
@@ -402,6 +420,10 @@ module RubyCurses
           wt   = info.weight
           wt = auto if wt == :AUTO
           e.row = r
+          if e.row <= @row
+            # TODO do something here !!
+            $log.warn "XXX: WARN  VIMPSPLIT row #{e.row} going less than #{@row} "
+          end
           e.col = c
           if type == :STACK
             # store actual weight that was calculated, so if user reduces or increases
@@ -415,7 +437,14 @@ module RubyCurses
             if use_preferred_sizes
               if wt != 0
                 if wt
-                  e.height = ((rca.h * wt).to_i)
+                  m = rca.h * wt
+                  mf = m.floor
+                  srem += (m - mf)
+                  if srem >= 1
+                    mf += 1
+                    srem = 0
+                  end
+                  e.height = mf #((rca.h * wt).to_i)
                 else
                   a = 0
                   a = 1 if @suppress_borders
@@ -424,9 +453,10 @@ module RubyCurses
                 # else use its own height
               end
             end
+            $log.warn "XXX: WARN  VIMSPLIT height = 0 " if e.height == 0
             rca.row += e.height
             totalht += wt if wt
-          else
+          else # FLOW
             # TODO THIS PART AS PER ABOVE CASE ,  TO TEST
             # this is a horizontal split or flow
             info.act_weight = wt
@@ -435,7 +465,14 @@ module RubyCurses
             if use_preferred_sizes
               if wt != 0
                 if wt
-                  e.width = ((rca.w * wt).to_i)
+                  m = rca.w * wt
+                  mf = m.floor
+                  frem += (m - mf)
+                  if frem >= 1
+                    mf += 1
+                    frem = 0
+                  end
+                  e.width = mf # ((rca.w * wt).to_i)
                 else
                   a = 0
                   a = 1 if @suppress_borders
@@ -447,7 +484,7 @@ module RubyCurses
             totalwd += wt if wt
           end
           e.set_buffering(:target_window => @target_window || @form.window, :bottom => e.height-1, :right => e.width-1, :form => @form ) # removed on 2011-09-29 
-          $log.debug " XXXXX VIMS R #{e.row} C #{e.col} H #{e.height} W #{e.width} "
+          #$log.debug " XXXXX VIMS R #{@row} : #{e.row} C #{e.col} H #{e.height} W #{e.width} "
           e.repaint
           e._object_created = true # added 2010-09-16 13:02 now prop handlers can be fired
         end
@@ -477,7 +514,7 @@ module RubyCurses
       $log.debug " VIMSPLIT handle_key #{ch} "
       _multiplier = ($multiplier == 0 ? 1 : $multiplier )
       if ch == KEY_TAB
-        $log.debug " GOTO NEXT"
+        #$log.debug " GOTO NEXT"
         return goto_next_component
       elsif ch == KEY_BTAB
         return goto_prev_component
