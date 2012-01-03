@@ -1,5 +1,7 @@
 # this is a companion file to defaultlistselectionmodel
 # if you use that, include this to get all the methods to use it
+require 'rbcurse/extras/include/defaultlistselectionmodel'
+
 module RubyCurses
   module ListSelectable
 
