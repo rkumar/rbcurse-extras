@@ -27,8 +27,8 @@
 =end
 require 'logger'
 require 'rbcurse'
-require 'rbcurse/table/tablecellrenderer'
-require 'rbcurse/table/tabledatecellrenderer'
+require 'rbcurse/extras/widgets/table/tablecellrenderer'
+require 'rbcurse/extras/widgets/table/tabledatecellrenderer'
 require 'rbcurse/extras/include/checkboxcellrenderer'
 require 'rbcurse/extras/include/listselectable'
 require 'rbcurse/extras/include/listkeys'
@@ -64,6 +64,8 @@ module RubyCurses
     # the row or col that was exited.
     attr_reader :editing_col, :editing_row  # r and col being edited, set to nil on leave
     attr_accessor :is_editing # boolean is only true if cell_editing_allowed
+    # if set editing starts when you enter a cell, otherwise you would
+    # have to toggle to start editing.
     dsl_accessor :editing_policy   # :EDITING_AUTO
     dsl_accessor :size_to_fit   # boolean, will size columns upon set data just to fit
     dsl_accessor :estimate_widths   # boolean, will size columns upon set data
@@ -89,7 +91,7 @@ module RubyCurses
       @_events.push(*[:TABLE_TRAVERSAL_EVENT,:TABLE_EDITING_EVENT, :LIST_SELECTION_EVENT])
       init_vars
       install_list_keys
-      install_keys_bindings
+      map_keys
       if _data && _columns
         set_data _data, _columns
       end
@@ -114,30 +116,55 @@ module RubyCurses
       @table_changed = true
       @repaint_required = true
     end
-    def install_keys_bindings
+    def map_keys
 
       # alt-tab next column
       # alt-shift-tab prev column
       #bind_key(?\M-\C-i) { next_column }
       #bind_key(481) { previous_column }
-      bind_key(KEY_TAB) { next_column }
-      bind_key(KEY_BTAB) { previous_column }
-      bind_key(KEY_RIGHT) { next_column }
-      bind_key(KEY_LEFT) { previous_column }
-      bind_key(@KEY_ASK_FIND_FORWARD) { ask_search_forward }
-      bind_key(@KEY_ASK_FIND_BACKWARD) { ask_search_backward }
-      bind_key(@KEY_FIND_NEXT) { find_next }
-      bind_key(@KEY_FIND_PREV) { find_prev }
+      bind_key(KEY_TAB, :next_column )
+      bind_key(KEY_BTAB, :previous_column )
+      bind_key(KEY_RIGHT, :next_column )
+      bind_key(KEY_LEFT, :previous_column )
+      bind_key(@KEY_ASK_FIND_FORWARD, :ask_search_forward )
+      bind_key(@KEY_ASK_FIND_BACKWARD, :ask_search_backward )
+      bind_key(@KEY_FIND_NEXT, :find_next )
+      bind_key(@KEY_FIND_PREV, :find_prev ) if @KEY_FIND_PREV
       # added 2010-05-12 21:41 for vim keys, will work if cell editing allowed is false
       # user should be able to switch to editable and off so he can use keys TODO
       # TODO vim_editable mode: C dd etc . to repeat change, how about range commands like vim
       # TODO use numeric to widen, so we can distribute spacing
-      bind_key(?j){ next_row() }
-      bind_key(?k){ previous_row() }
-      bind_key(?G){ goto_bottom() }
-      bind_key([?g,?g]){ goto_top() }
-      bind_key(?l) { next_column }
-      bind_key(?h) { previous_column }
+      bind_key(?j, :next_row )
+      bind_key(?k, :previous_row )
+      bind_key(?G, :goto_bottom )
+      bind_key([?g,?g], :goto_top )
+      bind_key(?l, :next_column )
+      bind_key(?h, :previous_column )
+      bind_key(KEY_ENTER, :toggle_cell_editing )
+      bind_keys([?\C-n, KEY_DOWN], 'next_row') {
+        editing_stopped if @is_editing # 2009-01-16 16:06 
+        next_row #scroll_forward
+      }
+      bind_keys([KEY_UP, ?\C-p], 'prev_row') {
+        editing_stopped if @is_editing # 2009-01-16 16:06 
+        previous_row #scroll_forward
+      }
+      bind_key(@KEY_SCROLL_FORWARD, 'scroll_down') {
+        editing_stopped if @is_editing # 2009-01-16 16:06 
+        scroll_forward
+      }
+      bind_key(@KEY_SCROLL_BACKWARD, 'scroll_backward') {
+        editing_stopped if @is_editing # 2009-01-16 16:06 
+        scroll_backward
+      }
+      bind_key( @KEY_SCROLL_RIGHT, 'scroll right'){
+        editing_stopped if @is_editing # dts 2009-02-17 00:35 
+        scroll_right
+      }
+      bind_key( @KEY_SCROLL_LEFT, 'scroll left') {
+        editing_stopped if @is_editing # dts 2009-02-17 00:35 
+        scroll_left
+      }
     end
 
     def focussed_row
@@ -547,7 +574,10 @@ module RubyCurses
       @toprow ||= 0
       h = scrollatrow()
       rc = @table_model.row_count
-      if @is_editing and (ch != 27 and ch != ?\C-c and ch != 13)
+      # if we are editing let the component handle the key
+      #  - unless its ESC, ENTER or C-c in which case we do our own
+      #  processing, or coming out of edit mode
+      if @is_editing && (ch != 27 && ch != ?\C-c && ch != 13)
         $log.debug " sending ch #{ch} to cell editor"
         ret = @cell_editor.component.handle_key(ch)
         @repaint_required = true
@@ -556,29 +586,23 @@ module RubyCurses
         return if ret != :UNHANDLED
       end
       case ch
-      when KEY_UP  # show previous value
-        editing_stopped if @is_editing # 2009-01-16 16:06 
-        previous_row
-      when KEY_DOWN  # show previous value
-        editing_stopped if @is_editing # 2009-01-16 16:06 
-        next_row
-      when 27, ?\C-c
+      when ?\C-c, ?\C-g   # earlier ESC was here, but in vim ESC completes edit
         editing_canceled
-      when KEY_ENTER, 10, 13
-        # actually it should fall through to the else
-        return :UNHANDLED unless @cell_editing_allowed
-        toggle_cell_editing
+      #when KEY_ENTER, 10, 13
+        ## actually it should fall through to the else
+        #return :UNHANDLED unless @cell_editing_allowed
+        #toggle_cell_editing
 
       when @KEY_ROW_SELECTOR # ?\C-x #32
         #add_row_selection_interval @current_index, @current_index
         toggle_row_selection @current_index #, @current_index
         @repaint_required = true
-      when ?\C-n.getbyte(0)
-        editing_stopped if @is_editing # 2009-01-16 16:06 
-        scroll_forward
-      when ?\C-p.getbyte(0)
-        editing_stopped if @is_editing # 2009-01-16 16:06 
-        scroll_backward
+      #when ?\C-n.getbyte(0)
+        #editing_stopped if @is_editing # 2009-01-16 16:06 
+        #scroll_forward
+      #when ?\C-p.getbyte(0)
+        #editing_stopped if @is_editing # 2009-01-16 16:06 
+        #scroll_backward
       when @KEY_GOTO_TOP # removed 48 (0) from here so we can trap numbers
         # please note that C-[ gives 27, same as esc so will respond after ages
         editing_stopped if @is_editing # 2009-01-16 16:06 
@@ -586,12 +610,12 @@ module RubyCurses
       when @KEY_GOTO_BOTTOM
         editing_stopped if @is_editing # 2009-01-16 16:06 
         goto_bottom
-      when @KEY_SCROLL_RIGHT
-        editing_stopped if @is_editing # dts 2009-02-17 00:35 
-        scroll_right
-      when @KEY_SCROLL_LEFT
-        editing_stopped if @is_editing # dts 2009-02-17 00:35 
-        scroll_left
+      #when @KEY_SCROLL_RIGHT
+        #editing_stopped if @is_editing # dts 2009-02-17 00:35 
+        #scroll_right
+      #when @KEY_SCROLL_LEFT
+        #editing_stopped if @is_editing # dts 2009-02-17 00:35 
+        #scroll_left
       when ?0.getbyte(0)..?9.getbyte(0)
         $multiplier *= 10 ; $multiplier += (ch-48)
         #$log.debug " setting mult to #{$multiplier} in list "
@@ -747,7 +771,12 @@ module RubyCurses
     end
     def goto_top
       @oldrow = @current_index
-      @current_index = 0
+      # actually goto_top should onl;y goto top but I am making a change
+      # for vim's gg behaviour which will take you to line number if
+      # given, actually this should only happen on gg not some othey key
+      # that may specifically be for goto_top. 2012-01-2 
+      @current_index = $multiplier || 0 
+      #@current_index = 0
       bounds_check
     end
     def scroll_backward
@@ -1249,6 +1278,17 @@ module RubyCurses
       $log.debug "accomodate_delta: #{average}. #{total}"
       table_structure_changed(nil)
     end
+    public
+    def init_menu
+      return if @menu_init
+      require 'rbcurse/core/include/action'
+      @_menuitems ||= []
+      @_menuitems <<  Action.new("&Auto Edit On ") { @editing_policy = :EDITING_AUTO }
+      @_menuitems <<  Action.new("Auto Edit O&ff ") { @editing_policy = nil }
+      @menu_init = true
+
+  end
+
 
     # ADD METHODS HERE
   end # class Table
