@@ -65,9 +65,10 @@ App.new do
     lb = Listbox.new @form, :list => alist, :suppress_borders => false, :title => "[ brew packages ]",
       :left_margin => 1, :width => 100, :name => 'lb1', :height => max, :row => 1, :col => 1, :cell_editing_allowed => true
     lb.show_selector = false
-    require 'rbcurse/core/include/widgetmenu'
-    lb.extend(WidgetMenu)
-    lb.add_menu_item('z', 'test from app', 'some desc', Proc.new { alert "Hello world" } )
+    #require 'rbcurse/core/include/widgetmenu'
+    #lb.extend(WidgetMenu)
+    #lb.add_menu_item('z', 'test from app', 'some desc', Proc.new { alert "Hello world" } )
+    lb.action_manager().add_action( Action.new("&Testing from app"){ alert "testing from app" } )
     
   #end
   status_line :row => FFI::NCurses.LINES-1
