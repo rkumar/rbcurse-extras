@@ -184,7 +184,7 @@ if $0 == __FILE__
       end
       b_delrow.command { |form| 
         row = texta.focussed_row
-        if confirm("Do your really want to delete row #{row}?")== :YES
+        if confirm("Do your really want to delete row #{row}?")
           tm.delete_at row
           #texta.table_data_changed
         else
