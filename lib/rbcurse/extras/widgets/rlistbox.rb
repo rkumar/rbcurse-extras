@@ -472,6 +472,7 @@ module RubyCurses
       install_keys
       install_list_keys
       init_vars
+      init_actions
       # OMG What about people whove installed custom renders such as rfe.rb 2011-10-15 
       #bind(:PROPERTY_CHANGE){|e| @cell_renderer = nil } # will be recreated if anything changes 2011-09-28 V1.3.1  
       bind(:PROPERTY_CHANGE){|e| 
@@ -484,7 +485,6 @@ module RubyCurses
       if @list && !@list.selected_index.nil? 
         set_focus_on @list.selected_index # the new version
       end
-      init_menu
     end
     # this is called several times, from constructor
     # and when list data changed, so only put relevant resets here.
@@ -1230,15 +1230,16 @@ module RubyCurses
     alias :selected_values :get_selected_values
     alias :selected_indices :get_selected_indices
 
-  def init_menu
-    require 'rbcurse/core/include/action'
-      @_menuitems ||= []
-      @_menuitems <<  Action.new("&One Key Selection toggle ") { @one_key_selection = !@one_key_selection} 
-      @_menuitems << Action.new("&Edit Toggle") { @edit_toggle = !@edit_toggle; $status_message.value = "Edit toggle is #{@edit_toggle}" }
+    def init_actions
+      return if @actions_added
+      @actions_added = true
+      am = action_manager()
+      am.add_action(Action.new("&One Key Selection toggle ") { @one_key_selection = !@one_key_selection} )
+      am.add_action(Action.new("&Edit Toggle") { @edit_toggle = !@edit_toggle; $status_message.value = "Edit toggle is #{@edit_toggle}" })
 
       # this is a little more involved due to list selection model
-      @_menuitems <<  Action.new("&Disable selection") { @selection_mode = :none; unbind_key(32); bind_key(32, :scroll_forward); }
-  end
+      am.add_action(Action.new("&Disable selection") { @selection_mode = :none; unbind_key(32); bind_key(32, :scroll_forward); })
+    end
     # ADD HERE
   end # class listb
 
