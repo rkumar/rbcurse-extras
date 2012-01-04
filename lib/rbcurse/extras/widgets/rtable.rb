@@ -95,6 +95,7 @@ module RubyCurses
       if _data && _columns
         set_data _data, _columns
       end
+      init_actions
     end
 
     def init_vars
@@ -1279,13 +1280,12 @@ module RubyCurses
       table_structure_changed(nil)
     end
     public
-    def init_menu
-      return if @menu_init
-      require 'rbcurse/core/include/action'
-      @_menuitems ||= []
-      @_menuitems <<  Action.new("&Auto Edit On ") { @editing_policy = :EDITING_AUTO }
-      @_menuitems <<  Action.new("Auto Edit O&ff ") { @editing_policy = nil }
-      @menu_init = true
+    def init_actions
+      return if @actions_added
+      @actions_added = true
+      am = action_manager()
+      am.add_action( Action.new("&Auto Edit On ") { @editing_policy = :EDITING_AUTO })
+      am.add_action( Action.new("Auto Edit O&ff ") { @editing_policy = nil })
 
   end
 
