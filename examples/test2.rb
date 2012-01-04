@@ -559,15 +559,6 @@ if $0 == __FILE__
       #item=RubyCurses::MenuItem.new "Save","S"
       item = RubyCurses::MenuItem.new "Options ..."
       item.command() do |it|  
-        require './testtabp'
-        tp = TestTabbedPane.new
-        tp.run
-        $message.value=$config_hash.inspect
-        $log.debug " returning with #{$config_hash}: #{$config_hash.inspect}"
-      end
-      menu.add(item)
-      item = RubyCurses::MenuItem.new "Options2 ..."
-      item.command() do |it|  
         require './newtabbedwindow'
         tp = SetupTabbedPane.new
         tp.run
