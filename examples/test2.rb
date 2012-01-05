@@ -402,10 +402,11 @@ if $0 == __FILE__
       filemenu = RubyCurses::Menu.new "File"
       filemenu.add(item = RubyCurses::MenuItem.new("Open",'O'))
       item.command(@form) {|it, form|  $message.value = "Open called on menu bar"; 
-        require './qdfilechooser'
+        require './inc//qdfilechooser'
         fchooser = QDFileChooser.new
-        option = fchooser.show_open_dialog
-        $message.value = "File Selection #{option}, #{fchooser.get_selected_file}"
+        #option = fchooser.show_open_dialog
+        #$message.value = "File Selection #{option}, #{fchooser.get_selected_file}"
+        option = :dummy # we need to redo QDF as per new Messagebox
         if option == :OK
           filesel = fchooser.get_selected_file
           if !filesel.nil?
@@ -417,6 +418,8 @@ if $0 == __FILE__
           else
             alert "File name #{filesel} nil. Pls check code. "
           end
+        else
+          alert "Functionality temporarily revoked due to change in Messagebox"
         end
       }
 
