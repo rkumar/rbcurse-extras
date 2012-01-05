@@ -9,13 +9,10 @@
 # Copyright rkumar 2009, 2010 under Ruby License.
 #
 ####################################################
-#require 'rubygems'
-#require 'ncurses'
-#require 'logger'
 require 'rbcurse'
 require 'rbcurse/core/widgets/rcombo'
 require 'rbcurse/extras/widgets/rlistbox'
-require './rfe_renderer'
+require './inc/rfe_renderer'
 require 'rbcurse/core/widgets/keylabelprinter'
 require 'rbcurse/core/widgets/applicationheader'
 require 'rbcurse/core/include/action'
