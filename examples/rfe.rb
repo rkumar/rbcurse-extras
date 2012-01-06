@@ -723,8 +723,8 @@ class RFe
   end
   def resize
     dock = @form.by_name["dock"]
-    dock.row = Ncurses.LINES-2
-    dock.col = Ncurses.COLS-1
+    #dock.row = Ncurses.LINES-2
+    #dock.col = Ncurses.COLS-1
     dock.repaint_all(true)
     la = @lista.list
     lb = @listb.list
