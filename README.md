@@ -7,12 +7,7 @@ rbcurse-extras contains either more complex widgets or less common ones that may
 
 Some less frequently used widgets:
 
-* rlink       - Show a link on a screen.
-
-* rmenulink   - a menu-link like alpines main menu links
-
-* horizlist - a horizontal scrollable list like what I've seen on vim sometimes but I can't get
-              it back now. I've only tried it out once. It's cool.
+* horizlist - a horizontal scrollable list like what I've seen on vim sometimes 
 
 * menutree  - menu inspired by the `most` program. Core replaces this, i think.
 
