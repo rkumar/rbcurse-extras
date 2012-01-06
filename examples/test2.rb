@@ -562,7 +562,7 @@ if $0 == __FILE__
       #item=RubyCurses::MenuItem.new "Save","S"
       item = RubyCurses::MenuItem.new "Options ..."
       item.command() do |it|  
-        require './newtabbedwindow'
+        require './inc//newtabbedwindow'
         tp = SetupTabbedPane.new
         tp.run
         $message.value=$config_hash.inspect
