@@ -312,13 +312,13 @@ class RFe
     status_row = RubyCurses::Label.new @form, {'text' => "", :row => Ncurses.LINES-4, :col => 0, :display_length=>Ncurses.COLS-2, :visible => false}
     @status_row = status_row
     colb = Ncurses.COLS/2
-    ht = Ncurses.LINES - 4
+    ht = Ncurses.LINES - 3
     wid = Ncurses.COLS/2 - 0
     @trash_path = File.expand_path("~/.Trash")
     @trash_exists = File.directory? @trash_path
     $log.debug " trash_path #{@trash_path}, #{@trash_exists}"
-    @lista = FileExplorer.new @form, self, row=1, col=1, ht, wid
-    @listb = FileExplorer.new @form, self, row=1, col=colb, ht, wid
+    @lista = FileExplorer.new @form, self, row=0, col=0, ht, wid
+    @listb = FileExplorer.new @form, self, row=0, col=colb-1, ht, wid+1
 
     init_vars
   end
@@ -721,6 +721,24 @@ class RFe
   def stopping?
     @stopping
   end
+  def resize
+    dock = @form.by_name["dock"]
+    dock.row = Ncurses.LINES-2
+    dock.col = Ncurses.COLS-1
+    dock.repaint_all(true)
+    la = @lista.list
+    lb = @listb.list
+    wid = Ncurses.COLS/2
+    la.width wid
+    lb.width wid+1
+    hei = Ncurses.LINES-3
+    la.height hei
+    lb.height hei
+    lb.col = wid-1
+
+    @lista.list.repaint_all(true)
+    @listb.list.repaint_all(true)
+  end
   def draw_screens
     lasta = lastb = nil
     if !@config["last_dirs"].nil?
@@ -735,6 +753,7 @@ class RFe
     @form.bind_key([?d,?d], 'delete'){
       opt_file 'd'
     }
+    @form.bind(:RESIZE) { resize() }
     # list traps 'q' so this won't work
     @form.bind_key([?q,?q], 'quit'){
       @stopping = true
