@@ -1064,7 +1064,10 @@ module RubyCurses
           end
         end
         if @cell_editing_allowed && @is_editing
-          @cell_editor.component.repaint unless @cell_editor.nil? or @cell_editor.component.form.nil?
+          unless @cell_editor.nil? || @cell_editor.component.form.nil?
+            @cell_editor.component.display_length(@width-@internal_width-@left_margin) # just in case resizing of listbox
+            @cell_editor.component.repaint unless @cell_editor.nil? or @cell_editor.component.form.nil?
+          end
         end
       end # rc == 0
       #@table_changed = false
