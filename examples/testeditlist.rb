@@ -62,8 +62,9 @@ App.new do
 
   #stack :margin_top => 1, :width => :expand, :height => FFI::NCurses.LINES-2 do
   max = FFI::NCurses.LINES-2
+  maxw = FFI::NCurses.COLS-1
     lb = Listbox.new @form, :list => alist, :suppress_borders => false, :title => "[ brew packages ]",
-      :left_margin => 1, :width => 100, :name => 'lb1', :height => max, :row => 1, :col => 1, :cell_editing_allowed => true
+      :left_margin => 1, :width => maxw, :name => 'lb1', :height => max, :row => 1, :col => 1, :cell_editing_allowed => true
     lb.show_selector = false
     #require 'rbcurse/core/include/widgetmenu'
     #lb.extend(WidgetMenu)
@@ -71,7 +72,25 @@ App.new do
     lb.action_manager().add_action( Action.new("&Testing from app"){ alert "testing from app" } )
     
   #end
-  status_line :row => FFI::NCurses.LINES-1
+  sl = status_line :row => FFI::NCurses.LINES-1
+  #
+  # does a resize when form resized
+  def resize
+    # NOTE listbox celleditor's size needs to be changed too.
+    lb = @form.by_name["lb1"]
+    lb.width = Ncurses.COLS-1
+    max = FFI::NCurses.LINES-2
+    lb.height = max
+    lb.repaint
+    #sl.row( max + 1)
+    sl = @form.by_name["sl"]
+    max = FFI::NCurses.LINES-1
+    sl.row = max
+    h = @form.by_name["header"]
+    h.repaint_all(true)
+    @window.wrefresh
+  end
+  @form.bind(:RESIZE) { resize() }
   #label({:text => "F1 Help, F10 Quit. : for menu. Press F4 and F5 to test popup, space or enter to select", :row => Ncurses.LINES-1, :col => 0})
 
 
