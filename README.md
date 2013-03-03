@@ -1,5 +1,7 @@
 # rbcurse-extras
 
+** Working on 1.9.3 **
+
 Contains additional widgets for the rbcurse ncurses toolkit. rbcurse helps to easily build
 ncurses application for text terminals.
 
@@ -49,11 +51,11 @@ may move here.
 
 ## See also
 
-* rbcurse - <http://github.com/rkumar/rbcurse/>
-
 * rbcurse-core - <http://github.com/rkumar/rbcurse-core/>
 
 * rbcurse-experimental - <http://github.com/rkumar/rbcurse-experimental/>
+
+* rbcurse - <http://github.com/rkumar/rbcurse/>
 
 ## Install
 
